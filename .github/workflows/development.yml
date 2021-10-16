@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  GO_VERSION: 1.17
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build
+        run: |
+          mkdir bin
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-amd64
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-arm64
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-armv7
+          CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-ppc64le
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-windows-amd64.exe
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-darwin-amd64
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-darwin-arm64
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: sftpgo-plugin-eventstore
+          path: bin
