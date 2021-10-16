@@ -17,15 +17,15 @@ USAGE:
    sftpgo-plugin-eventstore serve [command options] [arguments...]
 
 OPTIONS:
-   --driver value       Database driver (required) [$SFTPGO_EVENTSTORE_PLUGIN_DRIVER]
-   --dsn value          Data source URI (required) [$SFTPGO_EVENTSTORE_PLUGIN_DSN]
-   --instance-id value  Instance identifier [$SFTPGO_EVENTSTORE_PLUGIN_INSTANCE_ID]
-   --retention value    Events older than the specified number of hours will be deleted. 0 means no events will be deleted (default: 0) [$SFTPGO_EVENTSTORE_PLUGIN_RETENTION]
+   --driver value       Database driver (required) [$SFTPGO_PLUGIN_EVENTSTORE_DRIVER]
+   --dsn value          Data source URI (required) [$SFTPGO_PLUGIN_EVENTSTORE_DSN]
+   --instance-id value  Instance identifier [$SFTPGO_PLUGIN_EVENTSTORE_INSTANCE_ID]
+   --retention value    Events older than the specified number of hours will be deleted. 0 means no events will be deleted (default: 0) [$SFTPGO_PLUGIN_EVENTSTORE_RETENTION]
 ```
 
 The `driver` and `dsn` flags are required. The `instance-id` allows to set an identifier, it is useful if you are storing events from multiple SFTPGo instances and want to store where they are coming from.
 If you set a `retention` > 0 events older than `now - retention (in hours)` will be automatically deleted. Old events will be checked every hour.
-Each flag can also be set using environment variables, for example the DSN can be set using the `SFTPGO_EVENTSTORE_PLUGIN_DSN` environment variable.
+Each flag can also be set using environment variables, for example the DSN can be set using the `SFTPGO_PLUGIN_EVENTSTORE_DSN` environment variable.
 
 This is an example configuration.
 
@@ -66,7 +66,7 @@ This is an example configuration.
 ...
 ```
 
-With the above example the plugin is configured to connect to PostgreSQL. We set the DSN using the `SFTPGO_EVENTSTORE_PLUGIN_DSN` environment variable.
+With the above example the plugin is configured to connect to PostgreSQL. We set the DSN using the `SFTPGO_PLUGIN_EVENTSTORE_DSN` environment variable.
 
 The plugin will not start if it fails to connect to the configured database service, this will prevent SFTPGo from starting.
 

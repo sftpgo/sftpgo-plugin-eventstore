@@ -19,7 +19,7 @@ import (
 
 const (
 	version   = "0.9.0-dev"
-	envPrefix = "SFTPGO_EVENTSTORE_PLUGIN_"
+	envPrefix = "SFTPGO_PLUGIN_EVENTSTORE_"
 )
 
 var (
