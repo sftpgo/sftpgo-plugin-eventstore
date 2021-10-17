@@ -3,7 +3,7 @@ module github.com/sftpgo/sftpgo-plugin-eventstore
 go 1.17
 
 require (
-	github.com/drakkan/sftpgo/v2 v2.1.1-0.20211013071504-a80ac80fcdc6
+	github.com/drakkan/sftpgo/v2 v2.1.1-0.20211017144305-3bbe67571f76
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/go-hclog v1.0.0
