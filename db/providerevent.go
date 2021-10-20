@@ -11,15 +11,15 @@ import (
 
 // ProviderEvent defines a provider event
 type ProviderEvent struct {
-	ID         string    `json:"id" gorm:"primaryKey"`
-	Timestamp  time.Time `json:"timestamp"`
-	Action     string    `json:"action"`
-	Username   string    `json:"username"`
-	IP         string    `json:"ip,omitempty"`
-	ObjectType string    `json:"object_type"`
-	ObjectName string    `json:"object_name"`
-	ObjectData []byte    `json:"object_data"`
-	InstanceID string    `json:"instance_id,omitempty"`
+	ID         string `json:"id" gorm:"primaryKey"`
+	Timestamp  int64  `json:"timestamp"`
+	Action     string `json:"action"`
+	Username   string `json:"username"`
+	IP         string `json:"ip,omitempty"`
+	ObjectType string `json:"object_type"`
+	ObjectName string `json:"object_name"`
+	ObjectData []byte `json:"object_data"`
+	InstanceID string `json:"instance_id,omitempty"`
 }
 
 // TableName defines the database table name

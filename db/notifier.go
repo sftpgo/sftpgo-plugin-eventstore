@@ -1,8 +1,6 @@
 package db
 
 import (
-	"time"
-
 	"github.com/sftpgo/sftpgo-plugin-eventstore/logger"
 )
 
@@ -10,7 +8,7 @@ type Notifier struct {
 	InstanceID string
 }
 
-func (n *Notifier) NotifyFsEvent(timestamp time.Time, action, username, fsPath, fsTargetPath, sshCmd, protocol, ip,
+func (n *Notifier) NotifyFsEvent(timestamp int64, action, username, fsPath, fsTargetPath, sshCmd, protocol, ip,
 	virtualPath, virtualTargetPath string, fileSize int64, status int,
 ) error {
 	ev := &FsEvent{
@@ -40,7 +38,7 @@ func (n *Notifier) NotifyFsEvent(timestamp time.Time, action, username, fsPath, 
 	return nil
 }
 
-func (n *Notifier) NotifyProviderEvent(timestamp time.Time, action, username, objectType, objectName, ip string,
+func (n *Notifier) NotifyProviderEvent(timestamp int64, action, username, objectType, objectName, ip string,
 	object []byte,
 ) error {
 	ev := &ProviderEvent{
