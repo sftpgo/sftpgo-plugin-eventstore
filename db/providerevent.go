@@ -44,11 +44,11 @@ func (ev *ProviderEvent) Create(tx *gorm.DB) error {
 }
 
 func cleanupProviderEvents(timestamp time.Time) error {
-	sess, cancel := getSessionWithTimeout(30 * time.Minute)
+	sess, cancel := getSessionWithTimeout(20 * time.Minute)
 	defer cancel()
 
 	logger.AppLogger.Debug("removing provider events", "timestamp", timestamp)
-	sess = sess.Where("timestamp < ?", timestamp).Delete(&ProviderEvent{})
+	sess = sess.Where("timestamp < ?", timestamp.UnixNano()).Delete(&ProviderEvent{})
 	err := sess.Error
 	if err == nil {
 		logger.AppLogger.Debug("provider events deleted", "num", sess.RowsAffected)

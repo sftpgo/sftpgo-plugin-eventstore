@@ -50,10 +50,10 @@ func (ev *FsEvent) Create(tx *gorm.DB) error {
 
 func cleanupFsEvents(timestamp time.Time) error {
 	logger.AppLogger.Debug("removing fs events", "timestamp", timestamp)
-	sess, cancel := getSessionWithTimeout(30 * time.Minute)
+	sess, cancel := getSessionWithTimeout(20 * time.Minute)
 	defer cancel()
 
-	sess = sess.Where("timestamp < ?", timestamp).Delete(&FsEvent{})
+	sess = sess.Where("timestamp < ?", timestamp.UnixNano()).Delete(&FsEvent{})
 	err := sess.Error
 	if err == nil {
 		logger.AppLogger.Debug("fs events deleted", "num", sess.RowsAffected)
