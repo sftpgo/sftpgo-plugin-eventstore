@@ -9,7 +9,7 @@ type Notifier struct {
 }
 
 func (n *Notifier) NotifyFsEvent(timestamp int64, action, username, fsPath, fsTargetPath, sshCmd, protocol, ip,
-	virtualPath, virtualTargetPath string, fileSize int64, status int,
+	virtualPath, virtualTargetPath, sessionID string, fileSize int64, status int,
 ) error {
 	ev := &FsEvent{
 		Timestamp:         timestamp,
@@ -22,6 +22,7 @@ func (n *Notifier) NotifyFsEvent(timestamp int64, action, username, fsPath, fsTa
 		SSHCmd:            sshCmd,
 		Protocol:          protocol,
 		IP:                ip,
+		SessionID:         sessionID,
 		FileSize:          fileSize,
 		Status:            status,
 		InstanceID:        n.InstanceID,

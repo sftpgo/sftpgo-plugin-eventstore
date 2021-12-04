@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,12 +25,13 @@ func TestFsEvent(t *testing.T) {
 		FileSize:          123,
 		Status:            1,
 		Protocol:          "SFTP",
+		SessionID:         uuid.NewString(),
 		IP:                "::1",
 	}
 
 	err := n.NotifyFsEvent(fsEvent.Timestamp, fsEvent.Action, fsEvent.Username, fsEvent.FsPath, fsEvent.FsTargetPath,
-		fsEvent.SSHCmd, fsEvent.Protocol, fsEvent.IP, fsEvent.VirtualPath, fsEvent.VirtualTargetPath, fsEvent.FileSize,
-		fsEvent.Status)
+		fsEvent.SSHCmd, fsEvent.Protocol, fsEvent.IP, fsEvent.VirtualPath, fsEvent.VirtualTargetPath, fsEvent.SessionID,
+		fsEvent.FileSize, fsEvent.Status)
 	assert.NoError(t, err)
 
 	sess, cancel := GetDefaultSession()

@@ -24,6 +24,7 @@ type FsEvent struct {
 	Status            int    `json:"status"`
 	Protocol          string `json:"protocol"`
 	IP                string `json:"ip,omitempty"`
+	SessionID         string `json:"session_id"`
 	InstanceID        string `json:"instance_id,omitempty"`
 }
 

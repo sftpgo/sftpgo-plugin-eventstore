@@ -23,7 +23,9 @@ func init() {
 }
 
 func registerMigrations() {
-	migrations = append(migrations, getV1Migration())
+	migrations = append(migrations,
+		getV1Migration(),
+		getV2Migration())
 }
 
 // MigrateDatabase migrates the database to the latest version
