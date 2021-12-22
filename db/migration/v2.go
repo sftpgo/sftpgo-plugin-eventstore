@@ -39,10 +39,7 @@ func v2Up(tx *gorm.DB) error {
 }
 
 func v2Down(tx *gorm.DB) error {
-	modelsToMigrate := []interface{}{
-		&fsEventV2{},
-	}
-	return tx.Migrator().DropTable(modelsToMigrate...)
+	return tx.Migrator().DropColumn(&fsEventV2{}, "SessionID")
 }
 
 func getV2Migration() *gormigrate.Migration {

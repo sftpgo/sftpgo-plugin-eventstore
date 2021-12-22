@@ -3,7 +3,7 @@
 ![Build](https://github.com/sftpgo/sftpgo-plugin-eventstore/workflows/Build/badge.svg?branch=main&event=push)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
-This plugin allows to store [SFTPGo](https://github.com/drakkan/sftpgo/) filesystem and provider events in database systems. It is not meant to react to `pre-*` events.
+This plugin allows to store [SFTPGo](https://github.com/drakkan/sftpgo/) filesystem and provider events in supported database engines. It is not meant to react to `pre-*` events.
 
 ## Configuration
 

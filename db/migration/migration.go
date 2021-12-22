@@ -44,6 +44,9 @@ func ResetDatabase(db *gorm.DB) error {
 	defer cancel()
 
 	db = db.WithContext(ctx)
+	if !db.Migrator().HasTable(options.TableName) {
+		return nil
+	}
 	m := gormigrate.New(db, options, migrations)
 	if err := m.RollbackTo(mignationV1ID); err != nil {
 		return err
