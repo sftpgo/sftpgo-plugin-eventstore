@@ -45,6 +45,7 @@ func ResetDatabase(db *gorm.DB) error {
 
 	db = db.WithContext(ctx)
 	if !db.Migrator().HasTable(options.TableName) {
+		fmt.Println("no migration was applied, nothing to do")
 		return nil
 	}
 	m := gormigrate.New(db, options, migrations)
@@ -54,5 +55,5 @@ func ResetDatabase(db *gorm.DB) error {
 	if err := v1Down(db); err != nil {
 		return err
 	}
-	return db.Exec(fmt.Sprintf(`DROP TABLE IF EXISTS "%v" CASCADE`, options.TableName)).Error
+	return db.Migrator().DropTable(options.TableName)
 }

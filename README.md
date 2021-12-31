@@ -95,9 +95,9 @@ To use Postgres you have to use `postgres` as driver. If you have a database nam
 
 Please refer to the documentation [here](https://github.com/go-gorm/postgres) for details about the dsn.
 
-### MySQL
+### MariaDB/MySQL
 
-To use MySQL you have to use `mysql` as driver. If you have a database named `sftpgo_events` on localhost and you want to connect to it using the user `sftpgo` with the password `sftpgopass` you can use a DSN like the following one.
+To use MariaDB/MySQL you have to use `mysql` as driver. If you have a database named `sftpgo_events` on localhost and you want to connect to it using the user `sftpgo` with the password `sftpgopass` you can use a DSN like the following one.
 
 ```shell
 "sftpgo:sftpgopass@tcp([127.0.0.1]:3306)/sftpgo_events?charset=utf8mb4&interpolateParams=true&timeout=10s&tls=false&writeTimeout=10s&readTimeout=10s&parseTime=true"
