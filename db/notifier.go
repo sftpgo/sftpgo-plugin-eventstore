@@ -1,6 +1,8 @@
 package db
 
 import (
+	"github.com/sftpgo/sdk/plugin/notifier"
+
 	"github.com/sftpgo/sftpgo-plugin-eventstore/logger"
 )
 
@@ -8,23 +10,25 @@ type Notifier struct {
 	InstanceID string
 }
 
-func (n *Notifier) NotifyFsEvent(timestamp int64, action, username, fsPath, fsTargetPath, sshCmd, protocol, ip,
-	virtualPath, virtualTargetPath, sessionID string, fileSize int64, status int,
-) error {
+func (n *Notifier) NotifyFsEvent(event *notifier.FsEvent) error {
 	ev := &FsEvent{
-		Timestamp:         timestamp,
-		Action:            action,
-		Username:          username,
-		FsPath:            fsPath,
-		FsTargetPath:      fsTargetPath,
-		VirtualPath:       virtualPath,
-		VirtualTargetPath: virtualTargetPath,
-		SSHCmd:            sshCmd,
-		Protocol:          protocol,
-		IP:                ip,
-		SessionID:         sessionID,
-		FileSize:          fileSize,
-		Status:            status,
+		Timestamp:         event.Timestamp,
+		Action:            event.Action,
+		Username:          event.Username,
+		FsPath:            event.Path,
+		FsTargetPath:      event.TargetPath,
+		VirtualPath:       event.VirtualPath,
+		VirtualTargetPath: event.VirtualTargetPath,
+		SSHCmd:            event.SSHCmd,
+		Protocol:          event.Protocol,
+		IP:                event.IP,
+		SessionID:         event.SessionID,
+		FileSize:          event.FileSize,
+		Status:            event.Status,
+		FsProvider:        event.FsProvider,
+		Bucket:            event.Bucket,
+		Endpoint:          event.Endpoint,
+		OpenFlags:         event.OpenFlags,
 		InstanceID:        n.InstanceID,
 	}
 	sess, cancel := GetDefaultSession()
@@ -32,24 +36,22 @@ func (n *Notifier) NotifyFsEvent(timestamp int64, action, username, fsPath, fsTa
 
 	err := ev.Create(sess)
 	if err != nil {
-		logger.AppLogger.Warn("unable to save fs event", "action", action, "username", username,
-			"virtual path", virtualPath, "error", err)
+		logger.AppLogger.Warn("unable to save fs event", "action", event.Action, "username",
+			event.Username, "virtual path", event.VirtualPath, "error", err)
 		return err
 	}
 	return nil
 }
 
-func (n *Notifier) NotifyProviderEvent(timestamp int64, action, username, objectType, objectName, ip string,
-	object []byte,
-) error {
+func (n *Notifier) NotifyProviderEvent(event *notifier.ProviderEvent) error {
 	ev := &ProviderEvent{
-		Timestamp:  timestamp,
-		Action:     action,
-		Username:   username,
-		IP:         ip,
-		ObjectType: objectType,
-		ObjectName: objectName,
-		ObjectData: object,
+		Timestamp:  event.Timestamp,
+		Action:     event.Action,
+		Username:   event.Username,
+		IP:         event.IP,
+		ObjectType: event.ObjectType,
+		ObjectName: event.ObjectName,
+		ObjectData: event.ObjectData,
 		InstanceID: n.InstanceID,
 	}
 	sess, cancel := GetDefaultSession()
@@ -57,7 +59,7 @@ func (n *Notifier) NotifyProviderEvent(timestamp int64, action, username, object
 
 	err := ev.Create(sess)
 	if err != nil {
-		logger.AppLogger.Warn("unable to save provider event", "action", action, "error", err)
+		logger.AppLogger.Warn("unable to save provider event", "action", event.Action, "error", err)
 		return err
 	}
 	return nil

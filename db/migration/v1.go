@@ -43,7 +43,7 @@ type fsEventV1 struct {
 }
 
 func (ev *fsEventV1) TableName() string {
-	return "eventstore_fs_events"
+	return fsEventsTableName
 }
 
 func v1Up(tx *gorm.DB) error {

@@ -9,6 +9,10 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	fsEventsTableName = "eventstore_fs_events"
+)
+
 var (
 	migrations     []*gormigrate.Migration
 	options        *gormigrate.Options
@@ -25,7 +29,9 @@ func init() {
 func registerMigrations() {
 	migrations = append(migrations,
 		getV1Migration(),
-		getV2Migration())
+		getV2Migration(),
+		getV3Migration(),
+	)
 }
 
 // MigrateDatabase migrates the database to the latest version

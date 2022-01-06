@@ -25,6 +25,10 @@ type FsEvent struct {
 	Protocol          string `json:"protocol"`
 	IP                string `json:"ip,omitempty"`
 	SessionID         string `json:"session_id"`
+	FsProvider        int    `json:"fs_provider"`
+	Bucket            string `json:"bucket,omitempty"`
+	Endpoint          string `json:"endpoint,omitempty"`
+	OpenFlags         int    `json:"open_flags,omitempty"`
 	InstanceID        string `json:"instance_id,omitempty"`
 }
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sftpgo/sdk/plugin/notifier"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,12 +14,12 @@ func TestFsEvent(t *testing.T) {
 		InstanceID: "sftpgo1",
 	}
 
-	fsEvent := FsEvent{
+	fsEvent := &notifier.FsEvent{
 		Timestamp:         time.Now().UnixNano(),
 		Action:            "upload",
 		Username:          "username",
-		FsPath:            "/tmp/file.txt",
-		FsTargetPath:      "/tmp/target.txt",
+		Path:              "/tmp/file.txt",
+		TargetPath:        "/tmp/target.txt",
 		VirtualPath:       "file.txt",
 		VirtualTargetPath: "target.txt",
 		SSHCmd:            "scp",
@@ -27,11 +28,13 @@ func TestFsEvent(t *testing.T) {
 		Protocol:          "SFTP",
 		SessionID:         uuid.NewString(),
 		IP:                "::1",
+		FsProvider:        1,
+		Bucket:            "bucket",
+		Endpoint:          "endpoint",
+		OpenFlags:         512,
 	}
 
-	err := n.NotifyFsEvent(fsEvent.Timestamp, fsEvent.Action, fsEvent.Username, fsEvent.FsPath, fsEvent.FsTargetPath,
-		fsEvent.SSHCmd, fsEvent.Protocol, fsEvent.IP, fsEvent.VirtualPath, fsEvent.VirtualTargetPath, fsEvent.SessionID,
-		fsEvent.FileSize, fsEvent.Status)
+	err := n.NotifyFsEvent(fsEvent)
 	assert.NoError(t, err)
 
 	sess, cancel := GetDefaultSession()
@@ -44,11 +47,25 @@ func TestFsEvent(t *testing.T) {
 	assert.Equal(t, n.InstanceID, event.InstanceID)
 	assert.NotEmpty(t, event.ID)
 
-	fsEvent.ID = event.ID
-	fsEvent.InstanceID = event.InstanceID
-	assert.Equal(t, fsEvent, event)
+	assert.Equal(t, fsEvent.Timestamp, event.Timestamp)
+	assert.Equal(t, fsEvent.Action, event.Action)
+	assert.Equal(t, fsEvent.Username, event.Username)
+	assert.Equal(t, fsEvent.Path, event.FsPath)
+	assert.Equal(t, fsEvent.TargetPath, event.FsTargetPath)
+	assert.Equal(t, fsEvent.VirtualPath, event.VirtualPath)
+	assert.Equal(t, fsEvent.VirtualTargetPath, event.VirtualTargetPath)
+	assert.Equal(t, fsEvent.SSHCmd, event.SSHCmd)
+	assert.Equal(t, fsEvent.FileSize, event.FileSize)
+	assert.Equal(t, fsEvent.Status, event.Status)
+	assert.Equal(t, fsEvent.Protocol, event.Protocol)
+	assert.Equal(t, fsEvent.SessionID, event.SessionID)
+	assert.Equal(t, fsEvent.IP, event.IP)
+	assert.Equal(t, fsEvent.FsProvider, event.FsProvider)
+	assert.Equal(t, fsEvent.Bucket, event.Bucket)
+	assert.Equal(t, fsEvent.Endpoint, event.Endpoint)
+	assert.Equal(t, fsEvent.OpenFlags, event.OpenFlags)
 
-	providerEvent := ProviderEvent{
+	providerEvent := &notifier.ProviderEvent{
 		Timestamp:  time.Now().UnixNano(),
 		Action:     "add",
 		Username:   "adminUsername",
@@ -58,8 +75,7 @@ func TestFsEvent(t *testing.T) {
 		ObjectData: []byte("data"),
 	}
 
-	err = n.NotifyProviderEvent(providerEvent.Timestamp, providerEvent.Action, providerEvent.Username,
-		providerEvent.ObjectType, providerEvent.ObjectName, providerEvent.IP, providerEvent.ObjectData)
+	err = n.NotifyProviderEvent(providerEvent)
 	assert.NoError(t, err)
 
 	var providerEv ProviderEvent
@@ -69,9 +85,13 @@ func TestFsEvent(t *testing.T) {
 	assert.Equal(t, n.InstanceID, providerEv.InstanceID)
 	assert.NotEmpty(t, providerEv.ID)
 
-	providerEvent.ID = providerEv.ID
-	providerEvent.InstanceID = providerEv.InstanceID
-	assert.Equal(t, providerEvent, providerEv)
+	assert.Equal(t, providerEvent.Timestamp, providerEv.Timestamp)
+	assert.Equal(t, providerEvent.Action, providerEv.Action)
+	assert.Equal(t, providerEvent.Username, providerEv.Username)
+	assert.Equal(t, providerEvent.IP, providerEv.IP)
+	assert.Equal(t, providerEvent.ObjectType, providerEv.ObjectType)
+	assert.Equal(t, providerEvent.ObjectName, providerEv.ObjectName)
+	assert.Equal(t, providerEvent.ObjectData, providerEv.ObjectData)
 
 	// test cleanup
 	Cleanup(time.Now().Add(-24 * time.Hour))
