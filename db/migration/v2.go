@@ -22,7 +22,7 @@ type fsEventV2 struct {
 	FileSize          int64  `gorm:"size:64"`
 	Status            int    `gorm:"size:32;index:idx_fs_events_status"`
 	Protocol          string `gorm:"size:30;not null;index:idx_fs_events_protocol"`
-	SessionID         string `gorm:"size:100;index:idx_fs_events_session_id"`
+	SessionID         string `gorm:"size:100"`
 	IP                string `gorm:"size:50;index:idx_ip"`
 	InstanceID        string `gorm:"size:60;index:idx_fs_events_instance_id"`
 }
