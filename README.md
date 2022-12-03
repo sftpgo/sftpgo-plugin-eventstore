@@ -51,8 +51,14 @@ This is an example configuration.
         ],
         "provider_objects": [
           "user",
+          "folder",
+          "group",
           "admin",
-          "api_key"
+          "api_key",
+          "share",
+          "event_action",
+          "event_rule",
+          "role"
         ],
         "retry_max_time": 60,
         "retry_queue_max_size": 1000

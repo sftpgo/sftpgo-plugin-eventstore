@@ -31,6 +31,7 @@ func TestFsEvent(t *testing.T) {
 		FsProvider:        1,
 		Bucket:            "bucket",
 		Endpoint:          "endpoint",
+		Role:              "role1",
 		OpenFlags:         512,
 	}
 
@@ -64,6 +65,7 @@ func TestFsEvent(t *testing.T) {
 	assert.Equal(t, fsEvent.Bucket, event.Bucket)
 	assert.Equal(t, fsEvent.Endpoint, event.Endpoint)
 	assert.Equal(t, fsEvent.OpenFlags, event.OpenFlags)
+	assert.Equal(t, fsEvent.Role, event.Role)
 
 	providerEvent := &notifier.ProviderEvent{
 		Timestamp:  time.Now().UnixNano(),
@@ -72,6 +74,7 @@ func TestFsEvent(t *testing.T) {
 		IP:         "127.0.0.1",
 		ObjectType: "admin",
 		ObjectName: "adminname",
+		Role:       "role2",
 		ObjectData: []byte("data"),
 	}
 
@@ -91,6 +94,7 @@ func TestFsEvent(t *testing.T) {
 	assert.Equal(t, providerEvent.IP, providerEv.IP)
 	assert.Equal(t, providerEvent.ObjectType, providerEv.ObjectType)
 	assert.Equal(t, providerEvent.ObjectName, providerEv.ObjectName)
+	assert.Equal(t, providerEvent.Role, providerEv.Role)
 	assert.Equal(t, providerEvent.ObjectData, providerEv.ObjectData)
 
 	// test cleanup

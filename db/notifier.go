@@ -29,6 +29,7 @@ func (n *Notifier) NotifyFsEvent(event *notifier.FsEvent) error {
 		Bucket:            event.Bucket,
 		Endpoint:          event.Endpoint,
 		OpenFlags:         event.OpenFlags,
+		Role:              event.Role,
 		InstanceID:        n.InstanceID,
 	}
 	sess, cancel := GetDefaultSession()
@@ -52,6 +53,7 @@ func (n *Notifier) NotifyProviderEvent(event *notifier.ProviderEvent) error {
 		ObjectType: event.ObjectType,
 		ObjectName: event.ObjectName,
 		ObjectData: event.ObjectData,
+		Role:       event.Role,
 		InstanceID: n.InstanceID,
 	}
 	sess, cancel := GetDefaultSession()

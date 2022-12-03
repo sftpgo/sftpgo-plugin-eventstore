@@ -29,6 +29,7 @@ type FsEvent struct {
 	Bucket            string `json:"bucket,omitempty"`
 	Endpoint          string `json:"endpoint,omitempty"`
 	OpenFlags         int    `json:"open_flags,omitempty"`
+	Role              string `json:"role,omitempty"`
 	InstanceID        string `json:"instance_id,omitempty"`
 }
 
