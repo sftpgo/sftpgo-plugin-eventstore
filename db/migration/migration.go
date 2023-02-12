@@ -32,6 +32,7 @@ func registerMigrations() {
 		getV2Migration(),
 		getV3Migration(),
 		getV4Migration(),
+		getV5Migration(),
 	)
 }
 

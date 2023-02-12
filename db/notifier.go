@@ -24,6 +24,7 @@ func (n *Notifier) NotifyFsEvent(event *notifier.FsEvent) error {
 		IP:                event.IP,
 		SessionID:         event.SessionID,
 		FileSize:          event.FileSize,
+		Elapsed:           event.Elapsed,
 		Status:            event.Status,
 		FsProvider:        event.FsProvider,
 		Bucket:            event.Bucket,

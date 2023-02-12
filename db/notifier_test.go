@@ -24,6 +24,7 @@ func TestFsEvent(t *testing.T) {
 		VirtualTargetPath: "target.txt",
 		SSHCmd:            "scp",
 		FileSize:          123,
+		Elapsed:           456,
 		Status:            1,
 		Protocol:          "SFTP",
 		SessionID:         uuid.NewString(),
@@ -57,6 +58,7 @@ func TestFsEvent(t *testing.T) {
 	assert.Equal(t, fsEvent.VirtualTargetPath, event.VirtualTargetPath)
 	assert.Equal(t, fsEvent.SSHCmd, event.SSHCmd)
 	assert.Equal(t, fsEvent.FileSize, event.FileSize)
+	assert.Equal(t, fsEvent.Elapsed, event.Elapsed)
 	assert.Equal(t, fsEvent.Status, event.Status)
 	assert.Equal(t, fsEvent.Protocol, event.Protocol)
 	assert.Equal(t, fsEvent.SessionID, event.SessionID)
