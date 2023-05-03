@@ -29,7 +29,7 @@ func (ev *ProviderEvent) TableName() string {
 }
 
 // BeforeCreate implements gorm hook
-func (ev *ProviderEvent) BeforeCreate(tx *gorm.DB) (err error) {
+func (ev *ProviderEvent) BeforeCreate(_ *gorm.DB) (err error) {
 	uuid, err := uuid.NewRandom()
 	if err != nil {
 		logger.AppLogger.Error("unable to generate uuid", "error", err)

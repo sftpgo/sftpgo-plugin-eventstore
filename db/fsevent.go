@@ -40,7 +40,7 @@ func (ev *FsEvent) TableName() string {
 }
 
 // BeforeCreate implements gorm hook
-func (ev *FsEvent) BeforeCreate(tx *gorm.DB) (err error) {
+func (ev *FsEvent) BeforeCreate(_ *gorm.DB) (err error) {
 	uuid, err := uuid.NewRandom()
 	if err != nil {
 		logger.AppLogger.Error("unable to generate uuid", "error", err)
