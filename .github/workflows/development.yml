@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -107,13 +107,13 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: '1.20'
 
       - name: Run tests using PostgreSQL provider
         run: |
-          go test -v -p 1 -timeout 5m ./... -covermode=atomic
+          go test -v -p 1 -tags nopgxregisterdefaulttypes -timeout 5m ./... -covermode=atomic
         env:
           SFTPGO_PLUGIN_EVENTSTORE_DRIVER: postgres
           SFTPGO_PLUGIN_EVENTSTORE_DSN: "host='127.0.0.1' port=5432 dbname='sftpgo_events' user='postgres' password='postgres' sslmode=disable connect_timeout=10"
@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: '1.20'
       - uses: actions/checkout@v3
