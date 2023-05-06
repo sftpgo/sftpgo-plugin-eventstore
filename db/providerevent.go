@@ -3,7 +3,7 @@ package db
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/rs/xid"
 	"gorm.io/gorm"
 
 	"github.com/sftpgo/sftpgo-plugin-eventstore/logger"
@@ -30,12 +30,7 @@ func (ev *ProviderEvent) TableName() string {
 
 // BeforeCreate implements gorm hook
 func (ev *ProviderEvent) BeforeCreate(_ *gorm.DB) (err error) {
-	uuid, err := uuid.NewRandom()
-	if err != nil {
-		logger.AppLogger.Error("unable to generate uuid", "error", err)
-		return err
-	}
-	ev.ID = uuid.String()
+	ev.ID = xid.New().String()
 	return
 }
 

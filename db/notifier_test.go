@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/rs/xid"
 	"github.com/sftpgo/sdk/plugin/notifier"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +27,7 @@ func TestFsEvent(t *testing.T) {
 		Elapsed:           456,
 		Status:            1,
 		Protocol:          "SFTP",
-		SessionID:         uuid.NewString(),
+		SessionID:         xid.New().String(),
 		IP:                "::1",
 		FsProvider:        1,
 		Bucket:            "bucket",
