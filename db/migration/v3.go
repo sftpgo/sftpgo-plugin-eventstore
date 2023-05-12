@@ -23,10 +23,10 @@ type fsEventV3 struct {
 	Status            int    `gorm:"size:32;index:idx_fs_events_status"`
 	Protocol          string `gorm:"size:30;not null;index:idx_fs_events_protocol"`
 	SessionID         string `gorm:"size:100"`
-	IP                string `gorm:"size:50;index:idx_ip"`
-	FsProvider        int    `gorm:"size:32;index:idx_fs_provider"`
-	Bucket            string `gorm:"size:512;index:idx_bucket"`
-	Endpoint          string `gorm:"size:512;index:idx_endpoint"`
+	IP                string `gorm:"size:50;index:idx_fs_events_ip"`
+	FsProvider        int    `gorm:"size:32;index:idx_fs_events_provider"`
+	Bucket            string `gorm:"size:512;index:idx_fs_events_bucket"`
+	Endpoint          string `gorm:"size:512;index:idx_fs_events_endpoint"`
 	OpenFlags         int    `gorm:"size:32"`
 	InstanceID        string `gorm:"size:60;index:idx_fs_events_instance_id"`
 }

@@ -7,12 +7,12 @@ require (
 	github.com/hashicorp/go-hclog v1.5.0
 	github.com/hashicorp/go-plugin v1.4.10-0.20230403150917-e889c1ba1044
 	github.com/rs/xid v1.5.0
-	github.com/sftpgo/sdk v0.1.3
+	github.com/sftpgo/sdk v0.1.4-0.20230512160325-38e59551f700
 	github.com/stretchr/testify v1.8.2
 	github.com/urfave/cli/v2 v2.25.3
 	gorm.io/driver/mysql v1.5.0
 	gorm.io/driver/postgres v1.5.0
-	gorm.io/gorm v1.25.0
+	gorm.io/gorm v1.25.1
 )
 
 require (
@@ -36,8 +36,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
+	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect

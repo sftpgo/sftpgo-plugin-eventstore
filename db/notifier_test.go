@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFsEvent(t *testing.T) {
+func TestNotifyEvents(t *testing.T) {
 	n := Notifier{
 		InstanceID: "sftpgo1",
 	}
@@ -98,6 +98,32 @@ func TestFsEvent(t *testing.T) {
 	assert.Equal(t, providerEvent.ObjectName, providerEv.ObjectName)
 	assert.Equal(t, providerEvent.Role, providerEv.Role)
 	assert.Equal(t, providerEvent.ObjectData, providerEv.ObjectData)
+
+	logEvent := &notifier.LogEvent{
+		Timestamp: time.Now().UnixNano(),
+		Event:     1,
+		Protocol:  "SSH",
+		Username:  "user1",
+		IP:        "127.0.0.1",
+		Message:   "error desc",
+		Role:      "role1",
+	}
+	err = n.NotifyLogEvent(logEvent)
+	assert.NoError(t, err)
+
+	var logEv LogEvent
+	err = sess.First(&logEv).Error
+	assert.NoError(t, err)
+
+	assert.Equal(t, n.InstanceID, logEv.InstanceID)
+	assert.NotEmpty(t, logEv.ID)
+	assert.Equal(t, logEvent.Timestamp, logEv.Timestamp)
+	assert.Equal(t, int(logEvent.Event), logEv.Event)
+	assert.Equal(t, logEvent.Protocol, logEv.Protocol)
+	assert.Equal(t, logEvent.Username, logEv.Username)
+	assert.Equal(t, logEvent.IP, logEv.IP)
+	assert.Equal(t, logEvent.Message, logEv.Message)
+	assert.Equal(t, logEvent.Role, logEv.Role)
 
 	// test cleanup
 	Cleanup(time.Now().Add(-24 * time.Hour))

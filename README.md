@@ -58,7 +58,15 @@ This is an example configuration.
           "share",
           "event_action",
           "event_rule",
-          "role"
+          "role",
+          "ip_list_entry",
+          "configs"
+        ],
+        "log_events": [
+          1,
+          2,
+          3,
+          4
         ],
         "retry_max_time": 60,
         "retry_queue_max_size": 1000
@@ -86,6 +94,7 @@ The plugin will automatically create the following database tables:
 
 - `eventstore_fs_events`
 - `eventstore_provider_events`
+- `eventstore_log_events`
 
 Inspect your database for more details.
 

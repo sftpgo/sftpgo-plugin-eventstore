@@ -81,7 +81,8 @@ func Initialize(driver, dsn string, dbDebug bool) error {
 	}
 
 	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetConnMaxIdleTime(3 * time.Minute)
+	sqlDB.SetConnMaxIdleTime(4 * time.Minute)
+	sqlDB.SetConnMaxLifetime(2 * time.Minute)
 
 	return sqlDB.Ping()
 }
@@ -108,5 +109,9 @@ func Cleanup(timestamp time.Time) {
 
 	if err := cleanupProviderEvents(timestamp); err != nil {
 		logger.AppLogger.Error("unable to delete provider events", "error", err)
+	}
+
+	if err := cleanupLogEvents(timestamp); err != nil {
+		logger.AppLogger.Error("unable to delete log events", "error", err)
 	}
 }

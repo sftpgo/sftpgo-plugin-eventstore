@@ -67,3 +67,25 @@ func (n *Notifier) NotifyProviderEvent(event *notifier.ProviderEvent) error {
 	}
 	return nil
 }
+
+func (n *Notifier) NotifyLogEvent(event *notifier.LogEvent) error {
+	ev := &LogEvent{
+		Timestamp:  event.Timestamp,
+		Event:      int(event.Event),
+		Protocol:   event.Protocol,
+		Username:   event.Username,
+		IP:         event.IP,
+		Message:    event.Message,
+		Role:       event.Role,
+		InstanceID: n.InstanceID,
+	}
+	sess, cancel := GetDefaultSession()
+	defer cancel()
+
+	err := ev.Create(sess)
+	if err != nil {
+		logger.AppLogger.Warn("unable to save log event", "event", event.Event, "error", err)
+		return err
+	}
+	return nil
+}
