@@ -47,7 +47,7 @@ var (
 )
 
 // Initialize initializes the database engine
-func Initialize(driver, dsn, customTlsConfig string, dbDebug bool) error {
+func Initialize(driver, dsn, customTLSConfig string, dbDebug bool) error {
 	var err error
 
 	newLogger := gormlogger.Discard
@@ -78,7 +78,7 @@ func Initialize(driver, dsn, customTlsConfig string, dbDebug bool) error {
 			return err
 		}
 	case driverNameMySQL:
-		if err := handleCustomTLSConfig(customTlsConfig); err != nil {
+		if err := handleCustomTLSConfig(customTLSConfig); err != nil {
 			logger.AppLogger.Error("unable to register custom tls config", "error", err)
 			return err
 		}
@@ -184,5 +184,4 @@ func handleCustomTLSConfig(config string) error {
 		return fmt.Errorf("unable to register tls config: %v", err)
 	}
 	return nil
-
 }
