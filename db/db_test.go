@@ -25,11 +25,12 @@ import (
 func TestMain(m *testing.M) {
 	driver := os.Getenv("SFTPGO_PLUGIN_EVENTSTORE_DRIVER")
 	dsn := os.Getenv("SFTPGO_PLUGIN_EVENTSTORE_DSN")
+	customTLSConfig := os.Getenv("SFTPGO_PLUGIN_EVENTSTORE_CUSTOM_TLS")
 	if driver == "" || dsn == "" {
 		fmt.Println("Driver and/or DSN not set, unable to execute test")
 		os.Exit(1)
 	}
-	if err := Initialize(driver, dsn, true); err != nil {
+	if err := Initialize(driver, dsn, customTLSConfig, true); err != nil {
 		fmt.Printf("unable to initialize database: %v\n", err)
 		os.Exit(1)
 	}

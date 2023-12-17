@@ -16,12 +16,16 @@ package db
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"runtime"
 	"time"
 
+	mysqldriver "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -43,7 +47,7 @@ var (
 )
 
 // Initialize initializes the database engine
-func Initialize(driver, dsn string, dbDebug bool) error {
+func Initialize(driver, dsn, customTlsConfig string, dbDebug bool) error {
 	var err error
 
 	newLogger := gormlogger.Discard
@@ -74,6 +78,10 @@ func Initialize(driver, dsn string, dbDebug bool) error {
 			return err
 		}
 	case driverNameMySQL:
+		if err := handleCustomTLSConfig(customTlsConfig); err != nil {
+			logger.AppLogger.Error("unable to register custom tls config", "error", err)
+			return err
+		}
 		Handle, err = gorm.Open(mysql.New(mysql.Config{
 			DSN: dsn,
 		}), &gorm.Config{
@@ -128,4 +136,53 @@ func Cleanup(timestamp time.Time) {
 	if err := cleanupLogEvents(timestamp); err != nil {
 		logger.AppLogger.Error("unable to delete log events", "error", err)
 	}
+}
+
+func handleCustomTLSConfig(config string) error {
+	if config == "" {
+		return nil
+	}
+	values, err := url.ParseQuery(config)
+	if err != nil {
+		logger.AppLogger.Error("unable to parse custom tls config", "value", config, "error", err)
+		return fmt.Errorf("unable to parse tls config: %w", err)
+	}
+	rootCert := values.Get("root_cert")
+	clientCert := values.Get("client_cert")
+	clientKey := values.Get("client_key")
+	tlsMode := values.Get("tls_mode")
+
+	tlsConfig := &tls.Config{}
+	if rootCert != "" {
+		rootCAs, err := x509.SystemCertPool()
+		if err != nil {
+			rootCAs = x509.NewCertPool()
+		}
+		rootCrt, err := os.ReadFile(rootCert)
+		if err != nil {
+			return fmt.Errorf("unable to load root certificate %q: %v", rootCert, err)
+		}
+		if !rootCAs.AppendCertsFromPEM(rootCrt) {
+			return fmt.Errorf("unable to parse root certificate %q", rootCert)
+		}
+		tlsConfig.RootCAs = rootCAs
+	}
+	if clientCert != "" && clientKey != "" {
+		cert := make([]tls.Certificate, 0, 1)
+		tlsCert, err := tls.LoadX509KeyPair(clientCert, clientKey)
+		if err != nil {
+			return fmt.Errorf("unable to load key pair %q, %q: %v", clientCert, clientKey, err)
+		}
+		cert = append(cert, tlsCert)
+		tlsConfig.Certificates = cert
+	}
+	if tlsMode == "1" {
+		tlsConfig.InsecureSkipVerify = true
+	}
+
+	if err := mysqldriver.RegisterTLSConfig("custom", tlsConfig); err != nil {
+		return fmt.Errorf("unable to register tls config: %v", err)
+	}
+	return nil
+
 }

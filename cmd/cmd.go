@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	version   = "1.0.13"
+	version   = "1.0.13-dev"
 	envPrefix = "SFTPGO_PLUGIN_EVENTSTORE_"
 )
 
@@ -42,10 +42,11 @@ var (
 )
 
 var (
-	driver     string
-	instanceID string
-	dsn        string
-	retention  int
+	driver          string
+	instanceID      string
+	dsn             string
+	customTlsConfig string
+	retention       int
 
 	dbFlags = []cli.Flag{
 		&cli.StringFlag{
@@ -61,6 +62,13 @@ var (
 			Destination: &dsn,
 			EnvVars:     []string{envPrefix + "DSN"},
 			Required:    true,
+		},
+		&cli.StringFlag{
+			Name:        "custom-tls",
+			Usage:       "Custom TLS config for MySQL driver (optional)",
+			Destination: &customTlsConfig,
+			EnvVars:     []string{envPrefix + "CUSTOM_TLS"},
+			Required:    false,
 		},
 	}
 
@@ -91,7 +99,7 @@ var (
 				Action: func(c *cli.Context) error {
 					logger.AppLogger.Info("starting sftpgo-plugin-eventstore", "version", getVersionString(),
 						"database driver", driver, "instance id", instanceID)
-					if err := db.Initialize(driver, dsn, false); err != nil {
+					if err := db.Initialize(driver, dsn, customTlsConfig, false); err != nil {
 						logger.AppLogger.Error("unable to initialize database", "error", err)
 						return err
 					}
@@ -123,7 +131,7 @@ var (
 				Usage: "Apply database schema migrations",
 				Flags: dbFlags,
 				Action: func(c *cli.Context) error {
-					if err := db.Initialize(driver, dsn, true); err != nil {
+					if err := db.Initialize(driver, dsn, customTlsConfig, true); err != nil {
 						logger.AppLogger.Error("unable to initialize database", "error", err)
 						return err
 					}
@@ -152,7 +160,7 @@ var (
 						fmt.Println("Aborted!")
 						return errors.New("command aborted")
 					}
-					if err := db.Initialize(driver, dsn, true); err != nil {
+					if err := db.Initialize(driver, dsn, customTlsConfig, true); err != nil {
 						logger.AppLogger.Error("unable to initialize database", "error", err)
 						return err
 					}
