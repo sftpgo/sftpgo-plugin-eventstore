@@ -96,7 +96,7 @@ var (
 				Name:  "serve",
 				Usage: "Launch the SFTPGo plugin, it must be called from an SFTPGo instance",
 				Flags: serveFlags,
-				Action: func(c *cli.Context) error {
+				Action: func(_ *cli.Context) error {
 					logger.AppLogger.Info("starting sftpgo-plugin-eventstore", "version", getVersionString(),
 						"database driver", driver, "instance id", instanceID)
 					if err := db.Initialize(driver, dsn, customTLSConfig, false); err != nil {
@@ -130,7 +130,7 @@ var (
 				Name:  "migrate",
 				Usage: "Apply database schema migrations",
 				Flags: dbFlags,
-				Action: func(c *cli.Context) error {
+				Action: func(_ *cli.Context) error {
 					if err := db.Initialize(driver, dsn, customTLSConfig, true); err != nil {
 						logger.AppLogger.Error("unable to initialize database", "error", err)
 						return err
@@ -146,7 +146,7 @@ var (
 				Name:  "reset",
 				Usage: "Reset the database schema, any data will be lost",
 				Flags: dbFlags,
-				Action: func(c *cli.Context) error {
+				Action: func(_ *cli.Context) error {
 					fmt.Println("You are about to delete all database data and schema", "driver", fmt.Sprintf("%#v", driver),
 						"dsn", fmt.Sprintf("%#v", dsn), "Are you sure?")
 					fmt.Println("Y/n")

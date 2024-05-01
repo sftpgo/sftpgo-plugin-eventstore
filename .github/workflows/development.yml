@@ -6,7 +6,7 @@ on:
   pull_request:
 
 env:
-  GO_VERSION: '1.20'
+  GO_VERSION: '1.22'
 
 jobs:
   build:
@@ -37,11 +37,11 @@ jobs:
 
           mkdir bin
           go-winres simply --arch amd64 --product-version $VERSION-$GIT_COMMIT --file-version $FILE_VERSION --file-description "SFTPGo plugin eventstore" --product-name "SFTPGo plugin eventstore" --copyright "AGPL-3.0" --original-filename sftpgo-plugin-eventstore-windows-x86_64.exe --icon res/icon.ico
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -tags nopgxregisterdefaulttypes -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o sftpgo-plugin-eventstore-windows-x86_64.exe
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o sftpgo-plugin-eventstore-windows-x86_64.exe
           go-winres simply --arch arm64 --product-version $VERSION-$GIT_COMMIT --file-version $FILE_VERSION --file-description "SFTPGo plugin eventstore" --product-name "SFTPGo plugin eventstore" --copyright "AGPL-3.0" --original-filename sftpgo-plugin-eventstore-windows-arm64.exe --icon res/icon.ico
-          CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -trimpath -tags nopgxregisterdefaulttypes -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o sftpgo-plugin-eventstore-windows-arm64.exe
+          CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o sftpgo-plugin-eventstore-windows-arm64.exe
           go-winres simply --arch 386 --product-version $VERSION-$GIT_COMMIT --file-version $FILE_VERSION --file-description "SFTPGo plugin eventstore" --product-name "SFTPGo plugin eventstore" --copyright "AGPL-3.0" --original-filename sftpgo-plugin-eventstore-windows-x86.exe --icon res/icon.ico
-          CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -trimpath -tags nopgxregisterdefaulttypes -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o sftpgo-plugin-eventstore-windows-x86.exe
+          CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o sftpgo-plugin-eventstore-windows-x86.exe
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             mv sftpgo-plugin-eventstore-windows-x86_64.exe bin/
             mv sftpgo-plugin-eventstore-windows-arm64.exe bin/
@@ -54,19 +54,19 @@ jobs:
             rm -f cert.pfx
           fi
 
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -tags nopgxregisterdefaulttypes -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-amd64
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -tags nopgxregisterdefaulttypes -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-arm64
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -trimpath -tags nopgxregisterdefaulttypes -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-armv7
-          CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le go build -trimpath -tags nopgxregisterdefaulttypes -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-ppc64le
-          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -tags nopgxregisterdefaulttypes -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-darwin-amd64
-          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -tags nopgxregisterdefaulttypes -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-darwin-arm64
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-amd64
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-arm64
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-armv7
+          CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-linux-ppc64le
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-darwin-amd64
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -ldflags "-s -w -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.commitHash=`git describe --always --dirty` -X github.com/sftpgo/sftpgo-plugin-eventstore/cmd.buildDate=`date -u +%FT%TZ`" -o bin/sftpgo-plugin-eventstore-darwin-arm64
         shell: bash
         env:
           CERT_DATA: ${{ secrets.CERT_DATA }}
           CERT_PASS: ${{ secrets.CERT_PASS }}
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sftpgo-plugin-eventstore
           path: bin
@@ -109,11 +109,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.20'
+          go-version: '1.22'
 
       - name: Run tests using PostgreSQL provider
         run: |
-          go test -v -p 1 -tags nopgxregisterdefaulttypes -timeout 5m ./... -covermode=atomic
+          go test -v -p 1 -timeout 5m ./... -covermode=atomic
         env:
           SFTPGO_PLUGIN_EVENTSTORE_DRIVER: postgres
           SFTPGO_PLUGIN_EVENTSTORE_DSN: "host='127.0.0.1' port=5432 dbname='sftpgo_events' user='postgres' password='postgres' sslmode=disable connect_timeout=10"
@@ -132,9 +132,9 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.20'
+          go-version: '1.22'
       - uses: actions/checkout@v4
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v5
         with:
           version: latest
