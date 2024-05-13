@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	version   = "1.0.14"
+	version   = "1.0.15"
 	envPrefix = "SFTPGO_PLUGIN_EVENTSTORE_"
 )
 
