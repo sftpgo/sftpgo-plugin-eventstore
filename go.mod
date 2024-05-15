@@ -1,6 +1,6 @@
 module github.com/sftpgo/sftpgo-plugin-eventstore
 
-go 1.21.10
+go 1.22.2
 
 require (
 	github.com/go-gormigrate/gormigrate/v2 v2.1.2
@@ -8,7 +8,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.6.1
 	github.com/rs/xid v1.5.0
-	github.com/sftpgo/sdk v0.1.6
+	github.com/sftpgo/sdk v0.1.7
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli/v2 v2.27.2
 	gorm.io/driver/mysql v1.5.6
@@ -44,7 +44,7 @@ require (
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
-	google.golang.org/grpc v1.63.2 // indirect
+	google.golang.org/grpc v1.64.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
