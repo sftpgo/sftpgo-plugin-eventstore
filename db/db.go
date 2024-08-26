@@ -47,7 +47,7 @@ var (
 )
 
 // Initialize initializes the database engine
-func Initialize(driver, dsn, customTLSConfig string, dbDebug bool) error {
+func Initialize(driver, dsn, customTLSConfig string, dbDebug bool, poolSize int) error {
 	var err error
 
 	newLogger := gormlogger.Discard
@@ -102,7 +102,12 @@ func Initialize(driver, dsn, customTLSConfig string, dbDebug bool) error {
 		return err
 	}
 
-	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(poolSize)
+	if poolSize > 0 {
+		sqlDB.SetMaxIdleConns(poolSize)
+	} else {
+		sqlDB.SetMaxIdleConns(2)
+	}
 	sqlDB.SetConnMaxIdleTime(4 * time.Minute)
 	sqlDB.SetConnMaxLifetime(2 * time.Minute)
 

@@ -14,13 +14,16 @@ NAME:
    sftpgo-plugin-eventstore serve - Launch the SFTPGo plugin, it must be called from an SFTPGo instance
 
 USAGE:
-   sftpgo-plugin-eventstore serve [command options] [arguments...]
+   sftpgo-plugin-eventstore serve [command options]
 
 OPTIONS:
    --driver value       Database driver (required) [$SFTPGO_PLUGIN_EVENTSTORE_DRIVER]
    --dsn value          Data source URI (required) [$SFTPGO_PLUGIN_EVENTSTORE_DSN]
+   --custom-tls value   Custom TLS config for MySQL driver (optional) [$SFTPGO_PLUGIN_EVENTSTORE_CUSTOM_TLS]
+   --pool-size value    Naximum number of open database connections (default: 0) [$SFTPGO_PLUGIN_EVENTSTORE_POOL_SIZE]
    --instance-id value  Instance identifier [$SFTPGO_PLUGIN_EVENTSTORE_INSTANCE_ID]
    --retention value    Events older than the specified number of hours will be deleted. 0 means no events will be deleted (default: 0) [$SFTPGO_PLUGIN_EVENTSTORE_RETENTION]
+   --help, -h           show help
 ```
 
 The `driver` and `dsn` flags are required. The `instance-id` allows to set an identifier, it is useful if you are storing events from multiple SFTPGo instances and want to store where they are coming from.

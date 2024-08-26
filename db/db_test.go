@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 		fmt.Println("Driver and/or DSN not set, unable to execute test")
 		os.Exit(1)
 	}
-	if err := Initialize(driver, dsn, customTLSConfig, true); err != nil {
+	if err := Initialize(driver, dsn, customTLSConfig, true, 0); err != nil {
 		fmt.Printf("unable to initialize database: %v\n", err)
 		os.Exit(1)
 	}
