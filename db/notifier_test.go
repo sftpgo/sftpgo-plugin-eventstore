@@ -15,15 +15,21 @@
 package db
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"testing"
 	"time"
 
-	"github.com/rs/xid"
 	"github.com/sftpgo/sdk/plugin/notifier"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNotifyEvents(t *testing.T) {
+	b := make([]byte, 128)
+	_, err := rand.Read(b)
+	require.NoError(t, err)
+
 	n := Notifier{
 		InstanceID: "sftpgo1",
 	}
@@ -41,7 +47,7 @@ func TestNotifyEvents(t *testing.T) {
 		Elapsed:           456,
 		Status:            1,
 		Protocol:          "SFTP",
-		SessionID:         xid.New().String(),
+		SessionID:         hex.EncodeToString(b),
 		IP:                "::1",
 		FsProvider:        1,
 		Bucket:            "bucket",
@@ -50,7 +56,7 @@ func TestNotifyEvents(t *testing.T) {
 		OpenFlags:         512,
 	}
 
-	err := n.NotifyFsEvent(fsEvent)
+	err = n.NotifyFsEvent(fsEvent)
 	assert.NoError(t, err)
 
 	sess, cancel := GetDefaultSession()
