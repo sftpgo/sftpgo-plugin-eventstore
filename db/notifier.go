@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Nicola Murino
+// Copyright (C) 2021-2026 Nicola Murino
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published
@@ -15,6 +15,8 @@
 package db
 
 import (
+	"context"
+
 	"github.com/sftpgo/sdk/plugin/notifier"
 
 	"github.com/sftpgo/sftpgo-plugin-eventstore/logger"
@@ -47,10 +49,10 @@ func (n *Notifier) NotifyFsEvent(event *notifier.FsEvent) error {
 		Role:              event.Role,
 		InstanceID:        n.InstanceID,
 	}
-	sess, cancel := GetDefaultSession()
+	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout)
 	defer cancel()
 
-	err := ev.Create(sess)
+	err := insertFsEvent(ctx, ev)
 	if err != nil {
 		logger.AppLogger.Warn("unable to save fs event", "action", event.Action, "username",
 			event.Username, "virtual path", event.VirtualPath, "error", err)
@@ -71,10 +73,10 @@ func (n *Notifier) NotifyProviderEvent(event *notifier.ProviderEvent) error {
 		Role:       event.Role,
 		InstanceID: n.InstanceID,
 	}
-	sess, cancel := GetDefaultSession()
+	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout)
 	defer cancel()
 
-	err := ev.Create(sess)
+	err := insertProviderEvent(ctx, ev)
 	if err != nil {
 		logger.AppLogger.Warn("unable to save provider event", "action", event.Action, "error", err)
 		return err
@@ -93,10 +95,10 @@ func (n *Notifier) NotifyLogEvent(event *notifier.LogEvent) error {
 		Role:       event.Role,
 		InstanceID: n.InstanceID,
 	}
-	sess, cancel := GetDefaultSession()
+	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout)
 	defer cancel()
 
-	err := ev.Create(sess)
+	err := insertLogEvent(ctx, ev)
 	if err != nil {
 		logger.AppLogger.Warn("unable to save log event", "event", event.Event, "error", err)
 		return err

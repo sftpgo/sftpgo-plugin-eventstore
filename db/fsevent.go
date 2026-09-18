@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Nicola Murino
+// Copyright (C) 2021-2026 Nicola Murino
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published
@@ -15,17 +15,17 @@
 package db
 
 import (
+	"context"
 	"time"
 
 	"github.com/rs/xid"
-	"gorm.io/gorm"
 
 	"github.com/sftpgo/sftpgo-plugin-eventstore/logger"
 )
 
 // FsEvent defines a filesystem event
 type FsEvent struct {
-	ID                string `json:"id" gorm:"primaryKey"`
+	ID                string `json:"id"`
 	Timestamp         int64  `json:"timestamp"`
 	Action            string `json:"action"`
 	Username          string `json:"username"`
@@ -48,31 +48,29 @@ type FsEvent struct {
 	InstanceID        string `json:"instance_id,omitempty"`
 }
 
-// TableName defines the database table name
-func (ev *FsEvent) TableName() string {
-	return "eventstore_fs_events"
-}
-
-// BeforeCreate implements gorm hook
-func (ev *FsEvent) BeforeCreate(_ *gorm.DB) error {
+func insertFsEvent(ctx context.Context, ev *FsEvent) error {
 	ev.ID = xid.New().String()
-	return nil
-}
-
-// Create persists the object
-func (ev *FsEvent) Create(tx *gorm.DB) error {
-	return tx.Create(ev).Error
+	q := buildInsertQuery("eventstore_fs_events", fsEventColumns)
+	_, err := dbHandle.ExecContext(ctx, q,
+		ev.ID, ev.Timestamp, ev.Action, ev.Username,
+		ev.FsPath, ev.FsTargetPath, ev.VirtualPath, ev.VirtualTargetPath,
+		ev.SSHCmd, ev.FileSize, ev.Elapsed, ev.Status,
+		ev.Protocol, ev.IP, ev.SessionID, ev.FsProvider,
+		ev.Bucket, ev.Endpoint, ev.OpenFlags, ev.Role, ev.InstanceID,
+	)
+	return err
 }
 
 func cleanupFsEvents(timestamp time.Time) error {
 	logger.AppLogger.Debug("removing fs events", "timestamp", timestamp)
-	sess, cancel := getSessionWithTimeout(20 * time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
 	defer cancel()
 
-	sess = sess.Where("timestamp < ?", timestamp.UnixNano()).Delete(&FsEvent{})
-	err := sess.Error
+	result, err := dbHandle.ExecContext(ctx, deleteQuery("eventstore_fs_events"),
+		timestamp.UnixNano())
 	if err == nil {
-		logger.AppLogger.Debug("fs events deleted", "num", sess.RowsAffected)
+		deleted, _ := result.RowsAffected()
+		logger.AppLogger.Debug("fs events deleted", "num", deleted)
 	}
 	return err
 }

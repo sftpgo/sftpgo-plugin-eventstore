@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Nicola Murino
+// Copyright (C) 2021-2026 Nicola Murino
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published
@@ -15,17 +15,17 @@
 package db
 
 import (
+	"context"
 	"time"
 
 	"github.com/rs/xid"
-	"gorm.io/gorm"
 
 	"github.com/sftpgo/sftpgo-plugin-eventstore/logger"
 )
 
 // LogEvent defines a log event
 type LogEvent struct {
-	ID         string `json:"id" gorm:"primaryKey"`
+	ID         string `json:"id"`
 	Timestamp  int64  `json:"timestamp"`
 	Event      int    `json:"event"`
 	Protocol   string `json:"protocol,omitempty"`
@@ -36,31 +36,26 @@ type LogEvent struct {
 	InstanceID string `json:"instance_id,omitempty"`
 }
 
-// TableName defines the database table name
-func (ev *LogEvent) TableName() string {
-	return "eventstore_log_events"
-}
-
-// BeforeCreate implements gorm hook
-func (ev *LogEvent) BeforeCreate(_ *gorm.DB) (err error) {
+func insertLogEvent(ctx context.Context, ev *LogEvent) error {
 	ev.ID = xid.New().String()
-	return
-}
-
-// Create persists the object
-func (ev *LogEvent) Create(tx *gorm.DB) error {
-	return tx.Create(ev).Error
+	q := buildInsertQuery("eventstore_log_events", logEventColumns)
+	_, err := dbHandle.ExecContext(ctx, q,
+		ev.ID, ev.Timestamp, ev.Event, ev.Protocol,
+		ev.Username, ev.IP, ev.Message, ev.Role, ev.InstanceID,
+	)
+	return err
 }
 
 func cleanupLogEvents(timestamp time.Time) error {
-	sess, cancel := getSessionWithTimeout(20 * time.Minute)
+	logger.AppLogger.Debug("removing log events", "timestamp", timestamp)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
 	defer cancel()
 
-	logger.AppLogger.Debug("removing log events", "timestamp", timestamp)
-	sess = sess.Where("timestamp < ?", timestamp.UnixNano()).Delete(&LogEvent{})
-	err := sess.Error
+	result, err := dbHandle.ExecContext(ctx, deleteQuery("eventstore_log_events"),
+		timestamp.UnixNano())
 	if err == nil {
-		logger.AppLogger.Debug("log events deleted", "num", sess.RowsAffected)
+		deleted, _ := result.RowsAffected()
+		logger.AppLogger.Debug("log events deleted", "num", deleted)
 	}
 	return err
 }

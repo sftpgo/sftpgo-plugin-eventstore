@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Nicola Murino
+// Copyright (C) 2021-2026 Nicola Murino
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published
@@ -15,6 +15,7 @@
 package db
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"testing"
@@ -59,11 +60,13 @@ func TestNotifyEvents(t *testing.T) {
 	err = n.NotifyFsEvent(fsEvent)
 	assert.NoError(t, err)
 
-	sess, cancel := GetDefaultSession()
+	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout)
 	defer cancel()
 
-	var event FsEvent
-	err = sess.First(&event).Error
+	event, err := scanFsEventRow(dbHandle.QueryRowContext(ctx,
+		"SELECT id, timestamp, action, username, fs_path, fs_target_path, virtual_path, virtual_target_path, "+
+			"ssh_cmd, file_size, elapsed, status, protocol, ip, session_id, fs_provider, bucket, endpoint, "+
+			"open_flags, role, instance_id FROM eventstore_fs_events LIMIT 1"))
 	assert.NoError(t, err)
 
 	assert.Equal(t, n.InstanceID, event.InstanceID)
@@ -103,8 +106,9 @@ func TestNotifyEvents(t *testing.T) {
 	err = n.NotifyProviderEvent(providerEvent)
 	assert.NoError(t, err)
 
-	var providerEv ProviderEvent
-	err = sess.First(&providerEv).Error
+	providerEv, err := scanProviderEventRow(dbHandle.QueryRowContext(ctx,
+		"SELECT id, timestamp, action, username, ip, object_type, object_name, object_data, role, instance_id "+
+			"FROM eventstore_provider_events LIMIT 1"))
 	assert.NoError(t, err)
 
 	assert.Equal(t, n.InstanceID, providerEv.InstanceID)
@@ -131,8 +135,9 @@ func TestNotifyEvents(t *testing.T) {
 	err = n.NotifyLogEvent(logEvent)
 	assert.NoError(t, err)
 
-	var logEv LogEvent
-	err = sess.First(&logEv).Error
+	logEv, err := scanLogEventRow(dbHandle.QueryRowContext(ctx,
+		"SELECT id, timestamp, event, protocol, username, ip, message, role, instance_id "+
+			"FROM eventstore_log_events LIMIT 1"))
 	assert.NoError(t, err)
 
 	assert.Equal(t, n.InstanceID, logEv.InstanceID)
@@ -148,24 +153,29 @@ func TestNotifyEvents(t *testing.T) {
 	// test cleanup
 	Cleanup(time.Now().Add(-24 * time.Hour))
 	// the data must not be deleted
-	var fsEvents []FsEvent
-	result := sess.Find(&fsEvents)
-	assert.NoError(t, result.Error)
-	assert.Equal(t, int64(1), result.RowsAffected)
+	var count int
+	err = dbHandle.QueryRowContext(ctx, "SELECT COUNT(*) FROM eventstore_fs_events").Scan(&count)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, count)
 
-	var providerEvents []ProviderEvent
-	result = sess.Find(&providerEvents)
-	assert.NoError(t, result.Error)
-	assert.Equal(t, int64(1), result.RowsAffected)
+	err = dbHandle.QueryRowContext(ctx, "SELECT COUNT(*) FROM eventstore_provider_events").Scan(&count)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, count)
 
-	fsEvents = nil
-	providerEvents = nil
+	err = dbHandle.QueryRowContext(ctx, "SELECT COUNT(*) FROM eventstore_log_events").Scan(&count)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, count)
+
 	Cleanup(time.Now().Add(1 * time.Hour))
-	result = sess.Find(&fsEvents)
-	assert.NoError(t, result.Error)
-	assert.Equal(t, int64(0), result.RowsAffected)
+	err = dbHandle.QueryRowContext(ctx, "SELECT COUNT(*) FROM eventstore_fs_events").Scan(&count)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, count)
 
-	result = sess.Find(&providerEvents)
-	assert.NoError(t, result.Error)
-	assert.Equal(t, int64(0), result.RowsAffected)
+	err = dbHandle.QueryRowContext(ctx, "SELECT COUNT(*) FROM eventstore_provider_events").Scan(&count)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, count)
+
+	err = dbHandle.QueryRowContext(ctx, "SELECT COUNT(*) FROM eventstore_log_events").Scan(&count)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, count)
 }

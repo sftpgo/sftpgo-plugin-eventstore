@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Nicola Murino
+// Copyright (C) 2021-2026 Nicola Murino
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published
@@ -15,21 +15,16 @@
 package db
 
 import (
-	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"database/sql"
 	"fmt"
-	"log"
 	"net/url"
 	"os"
-	"runtime"
 	"time"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
-	"gorm.io/driver/mysql"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	gormlogger "gorm.io/gorm/logger"
+	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/sftpgo/sftpgo-plugin-eventstore/logger"
 )
@@ -40,39 +35,20 @@ const (
 )
 
 var (
-	// Handle defines the global database handle
-	Handle              *gorm.DB
-	defaultQueryTimeout = 20 * time.Second
+	dbHandle            *sql.DB
 	driverName          string
+	defaultQueryTimeout = 20 * time.Second
 )
 
 // Initialize initializes the database engine
-func Initialize(driver, dsn, customTLSConfig string, dbDebug bool, poolSize int) error {
+func Initialize(driver, dsn, customTLSConfig string, poolSize int) error {
 	var err error
-
-	newLogger := gormlogger.Discard
-
-	if dbDebug {
-		newLogger = gormlogger.New(
-			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-			gormlogger.Config{
-				SlowThreshold: time.Second,     // Slow SQL threshold
-				LogLevel:      gormlogger.Info, // Log level
-				Colorful:      runtime.GOOS != "windows",
-			},
-		)
-	}
 
 	driverName = driver
 
 	switch driverName {
 	case driverNamePostgreSQL:
-		Handle, err = gorm.Open(postgres.New(postgres.Config{
-			DSN: dsn,
-		}), &gorm.Config{
-			SkipDefaultTransaction: true,
-			Logger:                 newLogger,
-		})
+		dbHandle, err = sql.Open("pgx", dsn)
 		if err != nil {
 			logger.AppLogger.Error("unable to create db handle", "error", err)
 			return err
@@ -82,50 +58,25 @@ func Initialize(driver, dsn, customTLSConfig string, dbDebug bool, poolSize int)
 			logger.AppLogger.Error("unable to register custom tls config", "error", err)
 			return err
 		}
-		Handle, err = gorm.Open(mysql.New(mysql.Config{
-			DSN: dsn,
-		}), &gorm.Config{
-			SkipDefaultTransaction: true,
-			Logger:                 newLogger,
-		})
+		dbHandle, err = sql.Open("mysql", dsn)
 		if err != nil {
 			logger.AppLogger.Error("unable to create db handle", "error", err)
 			return err
 		}
 	default:
-		return fmt.Errorf("unsupported database driver %v", driverName)
+		return fmt.Errorf("unsupported database driver %q", driverName)
 	}
 
-	sqlDB, err := Handle.DB()
-	if err != nil {
-		logger.AppLogger.Error("unable to get sql db handle", "error", err)
-		return err
-	}
-
-	sqlDB.SetMaxOpenConns(poolSize)
+	dbHandle.SetMaxOpenConns(poolSize)
 	if poolSize > 0 {
-		sqlDB.SetMaxIdleConns(poolSize)
+		dbHandle.SetMaxIdleConns(poolSize)
 	} else {
-		sqlDB.SetMaxIdleConns(2)
+		dbHandle.SetMaxIdleConns(2)
 	}
-	sqlDB.SetConnMaxIdleTime(4 * time.Minute)
-	sqlDB.SetConnMaxLifetime(2 * time.Minute)
+	dbHandle.SetConnMaxLifetime(240 * time.Second)
+	dbHandle.SetConnMaxIdleTime(120 * time.Second)
 
-	return sqlDB.Ping()
-}
-
-// GetDefaultSession returns a database session with the default timeout.
-// Don't forget to cancel the returned context
-func GetDefaultSession() (*gorm.DB, context.CancelFunc) {
-	return getSessionWithTimeout(defaultQueryTimeout)
-}
-
-// getSessionWithTimeout returns a database session with the specified timeout.
-// Don't forget to cancel the returned context
-func getSessionWithTimeout(timeout time.Duration) (*gorm.DB, context.CancelFunc) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-
-	return Handle.WithContext(ctx), cancel
+	return dbHandle.Ping()
 }
 
 // Cleanup removes old events

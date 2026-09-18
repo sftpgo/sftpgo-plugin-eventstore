@@ -105,20 +105,20 @@ Inspect your database for more details.
 
 ### PostgreSQL
 
-To use Postgres you have to use `postgres` as driver. If you have a database named `sftpgo_events` on localhost and you want to connect to it using the user `sftpgo` with the password `sftpgopass` you can use a DSN like the following one.
+Use `postgres` as driver. Example DSN:
 
 ```shell
-"host='127.0.0.1' port=5432 dbname='sftpgo_events' user='sftpgo' password='sftpgopass' sslmode=disable connect_timeout=10"
+"postgresql://sftpgo:sftpgopass@127.0.0.1:5432/sftpgo_events?sslmode=disable"
 ```
 
-Please refer to the documentation [here](https://github.com/go-gorm/postgres) for details about the dsn.
+Both the URI format (`postgresql://...`) and the keyword/value format (`host=... port=... dbname=...`) are supported. Please refer to the [pgx documentation](https://pkg.go.dev/github.com/jackc/pgx/v5/stdlib) for details.
 
 ### MariaDB/MySQL
 
-To use MariaDB/MySQL you have to use `mysql` as driver. If you have a database named `sftpgo_events` on localhost and you want to connect to it using the user `sftpgo` with the password `sftpgopass` you can use a DSN like the following one.
+Use `mysql` as driver. Example DSN:
 
 ```shell
-"sftpgo:sftpgopass@tcp([127.0.0.1]:3306)/sftpgo_events?collation=utf8mb4_unicode_ci&interpolateParams=true&timeout=10s&tls=false&writeTimeout=30s&readTimeout=30s&parseTime=true&clientFoundRows=true"
+"sftpgo:sftpgopass@tcp(127.0.0.1:3306)/sftpgo_events?charset=utf8mb4"
 ```
 
-Please refer to the documentation [here](https://github.com/go-gorm/mysql) for details about the dsn.
+Please refer to the [go-sql-driver/mysql documentation](https://github.com/go-sql-driver/mysql#dsn-data-source-name) for details about the DSN format.

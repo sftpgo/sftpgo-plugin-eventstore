@@ -1,4 +1,4 @@
-// Copyright (C) 2021-2023 Nicola Murino
+// Copyright (C) 2021-2026 Nicola Murino
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published
@@ -27,12 +27,11 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/sftpgo/sftpgo-plugin-eventstore/db"
-	"github.com/sftpgo/sftpgo-plugin-eventstore/db/migration"
 	"github.com/sftpgo/sftpgo-plugin-eventstore/logger"
 )
 
 const (
-	version   = "1.0.25"
+	version   = "1.1.0"
 	envPrefix = "SFTPGO_PLUGIN_EVENTSTORE_"
 )
 
@@ -73,7 +72,7 @@ var (
 		},
 		&cli.IntFlag{
 			Name:        "pool-size",
-			Usage:       "Naximum number of open database connections",
+			Usage:       "Maximum number of open database connections",
 			Destination: &poolSize,
 			EnvVars:     []string{envPrefix + "POOL_SIZE"},
 			Required:    false,
@@ -107,11 +106,11 @@ var (
 				Action: func(_ *cli.Context) error {
 					logger.AppLogger.Info("starting sftpgo-plugin-eventstore", "version", getVersionString(),
 						"database driver", driver, "instance id", instanceID, "pool size", poolSize)
-					if err := db.Initialize(driver, dsn, customTLSConfig, false, poolSize); err != nil {
+					if err := db.Initialize(driver, dsn, customTLSConfig, poolSize); err != nil {
 						logger.AppLogger.Error("unable to initialize database", "error", err)
 						return err
 					}
-					if err := migration.MigrateDatabase(db.Handle); err != nil {
+					if err := db.MigrateDatabase(); err != nil {
 						logger.AppLogger.Error("unable to migrate database", "error", err)
 						return err
 					}
@@ -139,11 +138,11 @@ var (
 				Usage: "Apply database schema migrations",
 				Flags: dbFlags,
 				Action: func(_ *cli.Context) error {
-					if err := db.Initialize(driver, dsn, customTLSConfig, true, poolSize); err != nil {
+					if err := db.Initialize(driver, dsn, customTLSConfig, poolSize); err != nil {
 						logger.AppLogger.Error("unable to initialize database", "error", err)
 						return err
 					}
-					if err := migration.MigrateDatabase(db.Handle); err != nil {
+					if err := db.MigrateDatabase(); err != nil {
 						logger.AppLogger.Error("unable to migrate database", "error", err)
 						return err
 					}
@@ -168,11 +167,11 @@ var (
 						fmt.Println("Aborted!")
 						return errors.New("command aborted")
 					}
-					if err := db.Initialize(driver, dsn, customTLSConfig, true, poolSize); err != nil {
+					if err := db.Initialize(driver, dsn, customTLSConfig, poolSize); err != nil {
 						logger.AppLogger.Error("unable to initialize database", "error", err)
 						return err
 					}
-					if err := migration.ResetDatabase(db.Handle); err != nil {
+					if err := db.ResetDatabase(); err != nil {
 						logger.AppLogger.Error("unable to reset database", "error", err)
 						return err
 					}
