@@ -111,16 +111,40 @@ jobs:
           SFTPGO_PLUGIN_EVENTSTORE_DRIVER: mysql
           SFTPGO_PLUGIN_EVENTSTORE_DSN: "sftpgo:sftpgo@tcp([127.0.0.1]:3307)/sftpgo_events?charset=utf8mb4&interpolateParams=true&timeout=10s&tls=false&writeTimeout=10s&readTimeout=10s&parseTime=true"
 
-  golangci-lint:
-    name: golangci-lint
+  lint:
+    name: lint
     runs-on: ubuntu-latest
+
     steps:
+      - uses: actions/checkout@v7
+
       - name: Set up Go
         uses: actions/setup-go@v7
         with:
-          go-version: '1.26'
-      - uses: actions/checkout@v7
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: latest
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Lint
+        run: |
+          export PATH="$(go env GOPATH)/bin:$PATH"
+          go install honnef.co/go/tools/cmd/staticcheck@v0.8.1
+          go install github.com/kisielk/errcheck@v1.20.0
+          go install mvdan.cc/unparam@v0.0.0-20260823230713-2fa3d841b0c8
+
+          set +e
+          rc=0
+          flags="-ignoretests -exclude .errcheck-excludes"
+
+          echo "==> go vet";                  go vet ./... || rc=1
+          echo "==> staticcheck";             staticcheck ./... || rc=1
+          echo "==> errcheck";                errcheck $flags ./... || rc=1
+          echo "==> unparam";                 unparam -tests ./... || rc=1
+
+          echo "==> go vet (windows)";        GOOS=windows go vet ./... || rc=1
+          echo "==> staticcheck (windows)";   GOOS=windows staticcheck ./... || rc=1
+          echo "==> errcheck (windows)";      GOOS=windows errcheck $flags ./... || rc=1
+
+          echo "==> gofmt"
+          out=$(gofmt -s -l .)
+          [ -z "$out" ] || { echo "$out"; rc=1; }
+
+          exit $rc

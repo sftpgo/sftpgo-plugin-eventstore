@@ -284,7 +284,7 @@ func initializeDatabase(ctx context.Context, conn *sql.Conn) error {
 			continue
 		}
 		if _, err := tx.ExecContext(ctx, q); err != nil {
-			tx.Rollback() //nolint:errcheck
+			tx.Rollback()
 			return fmt.Errorf("unable to execute query %q: %w", q, err)
 		}
 	}
@@ -315,20 +315,20 @@ func migrateFromGormigrate(ctx context.Context, conn *sql.Conn, fromV6 bool) err
 
 	if fromV6 {
 		if _, err := tx.ExecContext(ctx, v6ToV7SQL); err != nil {
-			tx.Rollback() //nolint:errcheck
+			tx.Rollback()
 			return fmt.Errorf("unable to widen the session_id column: %w", err)
 		}
 	}
 	if _, err := tx.ExecContext(ctx, createSQL); err != nil {
-		tx.Rollback() //nolint:errcheck
+		tx.Rollback()
 		return fmt.Errorf("unable to create eventstore_schema_version table: %w", err)
 	}
 	if _, err := tx.ExecContext(ctx, insertSQL); err != nil {
-		tx.Rollback() //nolint:errcheck
+		tx.Rollback()
 		return fmt.Errorf("unable to insert initial schema version: %w", err)
 	}
 	if _, err := tx.ExecContext(ctx, dropSQL); err != nil {
-		tx.Rollback() //nolint:errcheck
+		tx.Rollback()
 		return fmt.Errorf("unable to drop migrations table: %w", err)
 	}
 
