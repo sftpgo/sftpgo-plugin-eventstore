@@ -48,16 +48,20 @@ func MigrateDatabase() error {
 
 	// Check for gormigrate legacy table
 	if tableExists(ctx, conn, "migrations") {
-		if hasGormigrateV7(ctx, conn) {
+		var fromV6 bool
+		switch {
+		case hasGormigrateMigration(ctx, conn, "7"):
 			logger.AppLogger.Info("found gormigrate legacy table at version 7, migrating to eventstore_schema_version")
-			if err := migrateFromGormigrate(ctx, conn); err != nil {
-				return fmt.Errorf("unable to migrate from gormigrate: %w", err)
-			}
-			logger.AppLogger.Info("migration from gormigrate completed successfully")
-			// fall through to apply any pending incremental migrations
-		} else {
-			return errors.New("unsupported gormigrate version, please upgrade to the latest gormigrate-based version first")
+		case hasGormigrateMigration(ctx, conn, "6"):
+			logger.AppLogger.Info("found gormigrate legacy table at version 6, migrating to eventstore_schema_version")
+			fromV6 = true
+		default:
+			return errors.New("unsupported gormigrate version, please upgrade to v1.0.25 first")
 		}
+		if err := migrateFromGormigrate(ctx, conn, fromV6); err != nil {
+			return fmt.Errorf("unable to migrate from gormigrate: %w", err)
+		}
+		logger.AppLogger.Info("migration from gormigrate completed successfully")
 	}
 
 	if tableExists(ctx, conn, "eventstore_schema_version") {
@@ -200,16 +204,16 @@ func tableExists(ctx context.Context, conn *sql.Conn, table string) bool {
 	return false
 }
 
-func hasGormigrateV7(ctx context.Context, conn *sql.Conn) bool {
+func hasGormigrateMigration(ctx context.Context, conn *sql.Conn, migrationID string) bool {
 	var id string
 	var err error
 	switch driverName {
 	case driverNamePostgreSQL:
-		err = conn.QueryRowContext(ctx, "SELECT id FROM migrations WHERE id = $1", "7").Scan(&id)
+		err = conn.QueryRowContext(ctx, "SELECT id FROM migrations WHERE id = $1", migrationID).Scan(&id)
 	default:
-		err = conn.QueryRowContext(ctx, "SELECT id FROM migrations WHERE id = ?", "7").Scan(&id)
+		err = conn.QueryRowContext(ctx, "SELECT id FROM migrations WHERE id = ?", migrationID).Scan(&id)
 	}
-	return err == nil && id == "7"
+	return err == nil && id == migrationID
 }
 
 func getSchemaVersion(ctx context.Context, conn *sql.Conn) (int, error) {
@@ -288,15 +292,17 @@ func initializeDatabase(ctx context.Context, conn *sql.Conn) error {
 	return tx.Commit()
 }
 
-func migrateFromGormigrate(ctx context.Context, conn *sql.Conn) error {
-	var createSQL, dropSQL string
+func migrateFromGormigrate(ctx context.Context, conn *sql.Conn, fromV6 bool) error {
+	var createSQL, dropSQL, v6ToV7SQL string
 	switch driverName {
 	case driverNameMySQL:
 		createSQL = "CREATE TABLE IF NOT EXISTS eventstore_schema_version (id int AUTO_INCREMENT NOT NULL PRIMARY KEY, version int NOT NULL)"
 		dropSQL = "DROP TABLE IF EXISTS `migrations`"
+		v6ToV7SQL = mysqlGormigrateV6ToV7
 	case driverNamePostgreSQL:
 		createSQL = `CREATE TABLE IF NOT EXISTS eventstore_schema_version (id integer NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY, version int NOT NULL)`
 		dropSQL = `DROP TABLE IF EXISTS "migrations"`
+		v6ToV7SQL = pgsqlGormigrateV6ToV7
 	default:
 		return fmt.Errorf("unsupported driver: %q", driverName)
 	}
@@ -307,6 +313,12 @@ func migrateFromGormigrate(ctx context.Context, conn *sql.Conn) error {
 		return fmt.Errorf("unable to begin transaction: %w", err)
 	}
 
+	if fromV6 {
+		if _, err := tx.ExecContext(ctx, v6ToV7SQL); err != nil {
+			tx.Rollback() //nolint:errcheck
+			return fmt.Errorf("unable to widen the session_id column: %w", err)
+		}
+	}
 	if _, err := tx.ExecContext(ctx, createSQL); err != nil {
 		tx.Rollback() //nolint:errcheck
 		return fmt.Errorf("unable to create eventstore_schema_version table: %w", err)

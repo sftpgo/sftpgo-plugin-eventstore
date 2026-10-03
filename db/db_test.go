@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -55,7 +56,7 @@ func TestMigrationIdempotent(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func createGormigrateMarker(t *testing.T, id string) {
+func createGormigrateMarker(t *testing.T, ids ...string) {
 	t.Helper()
 	ctx := context.Background()
 	var createMigrations, insertMigration string
@@ -69,8 +70,26 @@ func createGormigrateMarker(t *testing.T, id string) {
 	}
 	_, err := dbHandle.ExecContext(ctx, createMigrations)
 	require.NoError(t, err)
-	_, err = dbHandle.ExecContext(ctx, insertMigration, id)
-	require.NoError(t, err)
+	for _, id := range ids {
+		_, err = dbHandle.ExecContext(ctx, insertMigration, id)
+		require.NoError(t, err)
+	}
+}
+
+func getSessionIDColumnLength(t *testing.T) int {
+	t.Helper()
+	var q string
+	switch driverName {
+	case driverNameMySQL:
+		q = `SELECT character_maximum_length FROM information_schema.columns
+			WHERE table_schema = DATABASE() AND table_name = 'eventstore_fs_events' AND column_name = 'session_id'`
+	default:
+		q = `SELECT character_maximum_length FROM information_schema.columns
+			WHERE table_schema = current_schema() AND table_name = 'eventstore_fs_events' AND column_name = 'session_id'`
+	}
+	var length int
+	require.NoError(t, dbHandle.QueryRowContext(context.Background(), q).Scan(&length))
+	return length
 }
 
 func TestMigrationFromGormigrate(t *testing.T) {
@@ -96,6 +115,53 @@ func TestMigrationFromGormigrate(t *testing.T) {
 	require.NoError(t, err)
 	defer conn.Close()
 	assert.False(t, tableExists(ctx, conn, "migrations"))
+}
+
+func TestMigrationFromGormigrateV6(t *testing.T) {
+	ctx := context.Background()
+	require.NoError(t, ResetDatabase())
+	conn, err := dbHandle.Conn(ctx)
+	require.NoError(t, err)
+	require.NoError(t, initializeDatabase(ctx, conn))
+	require.NoError(t, dropTable(ctx, conn, "eventstore_schema_version"))
+	require.NoError(t, conn.Close())
+
+	var shrinkSQL string
+	switch driverName {
+	case driverNameMySQL:
+		shrinkSQL = "ALTER TABLE eventstore_fs_events MODIFY session_id varchar(100)"
+	default:
+		shrinkSQL = "ALTER TABLE eventstore_fs_events ALTER COLUMN session_id TYPE varchar(100)"
+	}
+	_, err = dbHandle.ExecContext(ctx, shrinkSQL)
+	require.NoError(t, err)
+	require.Equal(t, 100, getSessionIDColumnLength(t))
+
+	createGormigrateMarker(t, "1", "2", "3", "4", "5", "6")
+	require.NoError(t, MigrateDatabase())
+
+	assert.Equal(t, 512, getSessionIDColumnLength(t))
+	var version int
+	err = dbHandle.QueryRowContext(ctx, "SELECT version FROM eventstore_schema_version LIMIT 1").Scan(&version)
+	require.NoError(t, err)
+	assert.Equal(t, schemaVersion, version)
+
+	conn, err = dbHandle.Conn(ctx)
+	require.NoError(t, err)
+	assert.False(t, tableExists(ctx, conn, "migrations"))
+	require.NoError(t, conn.Close())
+
+	// a session ID longer than the old limit must be accepted
+	err = insertFsEvent(ctx, &FsEvent{
+		Timestamp: 1,
+		Action:    "upload",
+		Username:  "user",
+		Protocol:  "SFTP",
+		SessionID: strings.Repeat("a", 300),
+	})
+	assert.NoError(t, err)
+	require.NoError(t, ResetDatabase())
+	require.NoError(t, MigrateDatabase())
 }
 
 func TestMigrationFromGormigratePartialRecovery(t *testing.T) {

@@ -241,4 +241,7 @@ CREATE TABLE IF NOT EXISTS eventstore_schema_version (
   version int NOT NULL
 );
 INSERT INTO eventstore_schema_version (version) SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM eventstore_schema_version)`
+
+	mysqlGormigrateV6ToV7 = `ALTER TABLE eventstore_fs_events MODIFY session_id varchar(512)`
+	pgsqlGormigrateV6ToV7 = `ALTER TABLE eventstore_fs_events ALTER COLUMN session_id TYPE varchar(512)`
 )
