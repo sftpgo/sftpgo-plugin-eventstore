@@ -16,6 +16,7 @@ package db
 
 import (
 	"context"
+	"strings"
 
 	"github.com/sftpgo/sdk/plugin/notifier"
 
@@ -29,24 +30,24 @@ type Notifier struct {
 func (n *Notifier) NotifyFsEvent(event *notifier.FsEvent) error {
 	ev := &FsEvent{
 		Timestamp:         event.Timestamp,
-		Action:            event.Action,
-		Username:          event.Username,
-		FsPath:            event.Path,
-		FsTargetPath:      event.TargetPath,
-		VirtualPath:       event.VirtualPath,
-		VirtualTargetPath: event.VirtualTargetPath,
-		SSHCmd:            event.SSHCmd,
-		Protocol:          event.Protocol,
-		IP:                event.IP,
-		SessionID:         event.SessionID,
+		Action:            sanitizeText(event.Action),
+		Username:          sanitizeText(event.Username),
+		FsPath:            sanitizeText(event.Path),
+		FsTargetPath:      sanitizeText(event.TargetPath),
+		VirtualPath:       sanitizeText(event.VirtualPath),
+		VirtualTargetPath: sanitizeText(event.VirtualTargetPath),
+		SSHCmd:            sanitizeText(event.SSHCmd),
+		Protocol:          sanitizeText(event.Protocol),
+		IP:                sanitizeText(event.IP),
+		SessionID:         sanitizeText(event.SessionID),
 		FileSize:          event.FileSize,
 		Elapsed:           event.Elapsed,
 		Status:            event.Status,
 		FsProvider:        event.FsProvider,
-		Bucket:            event.Bucket,
-		Endpoint:          event.Endpoint,
+		Bucket:            sanitizeText(event.Bucket),
+		Endpoint:          sanitizeText(event.Endpoint),
 		OpenFlags:         event.OpenFlags,
-		Role:              event.Role,
+		Role:              sanitizeText(event.Role),
 		InstanceID:        n.InstanceID,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout)
@@ -64,13 +65,13 @@ func (n *Notifier) NotifyFsEvent(event *notifier.FsEvent) error {
 func (n *Notifier) NotifyProviderEvent(event *notifier.ProviderEvent) error {
 	ev := &ProviderEvent{
 		Timestamp:  event.Timestamp,
-		Action:     event.Action,
-		Username:   event.Username,
-		IP:         event.IP,
-		ObjectType: event.ObjectType,
-		ObjectName: event.ObjectName,
+		Action:     sanitizeText(event.Action),
+		Username:   sanitizeText(event.Username),
+		IP:         sanitizeText(event.IP),
+		ObjectType: sanitizeText(event.ObjectType),
+		ObjectName: sanitizeText(event.ObjectName),
 		ObjectData: event.ObjectData,
-		Role:       event.Role,
+		Role:       sanitizeText(event.Role),
 		InstanceID: n.InstanceID,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout)
@@ -88,11 +89,11 @@ func (n *Notifier) NotifyLogEvent(event *notifier.LogEvent) error {
 	ev := &LogEvent{
 		Timestamp:  event.Timestamp,
 		Event:      int(event.Event),
-		Protocol:   event.Protocol,
-		Username:   event.Username,
-		IP:         event.IP,
-		Message:    event.Message,
-		Role:       event.Role,
+		Protocol:   sanitizeText(event.Protocol),
+		Username:   sanitizeText(event.Username),
+		IP:         sanitizeText(event.IP),
+		Message:    sanitizeText(event.Message),
+		Role:       sanitizeText(event.Role),
 		InstanceID: n.InstanceID,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout)
@@ -104,4 +105,8 @@ func (n *Notifier) NotifyLogEvent(event *notifier.LogEvent) error {
 		return err
 	}
 	return nil
+}
+
+func sanitizeText(s string) string {
+	return strings.ReplaceAll(strings.ToValidUTF8(s, "\uFFFD"), "\x00", "\uFFFD")
 }

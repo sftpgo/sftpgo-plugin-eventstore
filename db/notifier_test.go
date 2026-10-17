@@ -179,3 +179,87 @@ func TestNotifyEvents(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, count)
 }
+
+func TestNotifyEventsInvalidText(t *testing.T) {
+	t.Cleanup(func() {
+		Cleanup(time.Now().Add(time.Hour))
+	})
+	placeholder := "?"
+	if driverName == driverNamePostgreSQL {
+		placeholder = "$1"
+	}
+	n := Notifier{InstanceID: "sftpgo1"}
+	ctx, cancel := context.WithTimeout(context.Background(), defaultQueryTimeout)
+	defer cancel()
+
+	fsEvent := &notifier.FsEvent{
+		Timestamp:         time.Now().UnixNano(),
+		Action:            "rename",
+		Username:          "user\x00",
+		Path:              "/srv/data/file\xff.txt",
+		TargetPath:        "/srv/data/a\x00b",
+		VirtualPath:       "/file\xff.txt",
+		VirtualTargetPath: "/a\x00b",
+		SSHCmd:            "cp\xfe",
+		Protocol:          "SFTP",
+		IP:                "::1",
+		SessionID:         "sid\x00",
+		Bucket:            "b\xff",
+		Endpoint:          "e\x00",
+		Role:              "r\xff",
+	}
+	require.NoError(t, n.NotifyFsEvent(fsEvent))
+	event, err := scanFsEventRow(dbHandle.QueryRowContext(ctx,
+		"SELECT id, timestamp, action, username, fs_path, fs_target_path, virtual_path, virtual_target_path, "+
+			"ssh_cmd, file_size, elapsed, status, protocol, ip, session_id, fs_provider, bucket, endpoint, "+
+			"open_flags, role, instance_id FROM eventstore_fs_events WHERE timestamp = "+placeholder,
+		fsEvent.Timestamp))
+	require.NoError(t, err)
+	assert.Equal(t, "user�", event.Username)
+	assert.Equal(t, "/srv/data/file�.txt", event.FsPath)
+	assert.Equal(t, "/srv/data/a�b", event.FsTargetPath)
+	assert.Equal(t, "/file�.txt", event.VirtualPath)
+	assert.Equal(t, "/a�b", event.VirtualTargetPath)
+	assert.Equal(t, "cp�", event.SSHCmd)
+	assert.Equal(t, "sid�", event.SessionID)
+	assert.Equal(t, "b�", event.Bucket)
+	assert.Equal(t, "e�", event.Endpoint)
+	assert.Equal(t, "r�", event.Role)
+
+	providerEvent := &notifier.ProviderEvent{
+		Timestamp:  time.Now().UnixNano(),
+		Action:     "add",
+		Username:   "admin\x00",
+		IP:         "127.0.0.1",
+		ObjectType: "user",
+		ObjectName: "name\xff",
+		Role:       "role\x00",
+		ObjectData: []byte("data\x00\xff"),
+	}
+	require.NoError(t, n.NotifyProviderEvent(providerEvent))
+	providerEv, err := scanProviderEventRow(dbHandle.QueryRowContext(ctx,
+		"SELECT id, timestamp, action, username, ip, object_type, object_name, object_data, role, instance_id "+
+			"FROM eventstore_provider_events WHERE timestamp = "+placeholder, providerEvent.Timestamp))
+	require.NoError(t, err)
+	assert.Equal(t, "admin�", providerEv.Username)
+	assert.Equal(t, "name�", providerEv.ObjectName)
+	assert.Equal(t, "role�", providerEv.Role)
+	assert.Equal(t, providerEvent.ObjectData, providerEv.ObjectData)
+
+	logEvent := &notifier.LogEvent{
+		Timestamp: time.Now().UnixNano(),
+		Event:     2,
+		Protocol:  "SSH",
+		Username:  "root\x00\xfe",
+		IP:        "127.0.0.1",
+		Message:   "ssh: requested service 'ssh-\x00\xffuserauth' before authenticating",
+		Role:      "",
+	}
+	require.NoError(t, n.NotifyLogEvent(logEvent))
+	logEv, err := scanLogEventRow(dbHandle.QueryRowContext(ctx,
+		"SELECT id, timestamp, event, protocol, username, ip, message, role, instance_id "+
+			"FROM eventstore_log_events WHERE timestamp = "+placeholder, logEvent.Timestamp))
+	require.NoError(t, err)
+	assert.Equal(t, "root��", logEv.Username)
+	assert.Equal(t, "ssh: requested service 'ssh-��userauth' before authenticating", logEv.Message)
+}
